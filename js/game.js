@@ -69,6 +69,8 @@ function setGameLevel(size, numOfMines) {
 
     clearInterval(gTimerInterval)
     gLivesCount = 3
+    var elLives = document.querySelector('.lives-left span')
+    elLives.innerText = gLivesCount
     isFirstClick = true
     var elBoard = document.querySelector('.board')
     elBoard.classList.remove('disabled')
