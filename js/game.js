@@ -18,7 +18,7 @@ function onInit() {
     elLives.innerText = gLivesCount
     clearInterval(gTimerInterval)
     gBoard = buildBoard(gSize)
-    
+    addMines(gBoard, gNumOfMines)
     renderBoard(gSize)
     var elBoard = document.querySelector('.board')
     elBoard.classList.remove('disabled')
@@ -75,7 +75,7 @@ function setGameLevel(size, numOfMines) {
     gSize = size;
     gNumOfMines = numOfMines
     gBoard = buildBoard(size);
-    
+    addMines(gBoard, gNumOfMines)
     renderBoard(size);
 }
 
@@ -156,7 +156,8 @@ function handleFirstClick() {
         
         startTimer();
         isFirstClick = false;
-        addMines(gBoard, gNumOfMines)
+        
+        ;
     }
 }
 
@@ -227,4 +228,3 @@ function disableBoard() {
 function isOutOfRange(row, col) {
     return (row < 0 || row >= gSize || col < 0 || col >= gSize);
   }
-
