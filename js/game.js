@@ -234,6 +234,7 @@ function countMinesArround(row, col) {
 }
 
 function onVictory() {
+    renderText('.reset-btn', '😎')
     onEndOfGame()
 }
 // when the user lose
