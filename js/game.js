@@ -51,7 +51,7 @@ function buildBoard(size) {
             }
         }
     }
-    console.log(board);
+//     console.log(board);
     return board
 }
 
@@ -108,10 +108,10 @@ function addMines(board, numOfMines) {
 }
 
 function onCellClicked(elCell, row, col) {
-    console.log(elCell, row, col);
+//     console.log(elCell, row, col);
     handleFirstClick(row, col)
 
-    console.log(gBoard);
+//     console.log(gBoard);
 
     var cell = gBoard[row][col]
 
@@ -144,7 +144,7 @@ function checkVictory() {
             }
         }
     }
-    gGame.isVictory = true
+    
     onVictory()
 }
 
@@ -169,19 +169,19 @@ function cellMarked(elCell, row, col) {
     var cell = gBoard[row][col]
     if (cell.isShown && !cell.isMine) return
     elCell.classList.toggle('marked');
-    console.log('elCell', elCell);
+//     console.log('elCell', elCell);
     var elCellClass = elCell.classList
-    console.log('elCellClass', elCellClass);
+//     console.log('elCellClass', elCellClass);
     if (elCellClass.contains('marked')) {
         elCell.textContent = FLAG
         cell.isMarked = true
         gGame.markedCount++
-        console.log('gGame.markedCount', gGame.markedCount);
+//         console.log('gGame.markedCount', gGame.markedCount);
     } else {
         elCell.textContent = ''
         cell.isMarked = false
         gGame.markedCount--
-        console.log('gGame.markedCount', gGame.markedCount);
+//         console.log('gGame.markedCount', gGame.markedCount);
     }
 
 }
@@ -234,6 +234,7 @@ function countMinesArround(row, col) {
 }
 
 function onVictory() {
+    gGame.isVictory = true
     renderText('.reset-btn', '😎')
     onEndOfGame()
 }
