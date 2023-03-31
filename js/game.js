@@ -3,23 +3,35 @@
 const CLICKED_MINE = '💥'
 const MINE = '💣'
 const FLAG = '🚩'
-var gElModal = document.querySelector('.modal')
-var gSize = 4
-var gNumOfMines = 2
-var gLivesCount 
-var isFirstClick
+
+var gGame
+var gSize
+var gNumOfMines
+var gIsVictory
+var gLivesCount
+var gIsFirstClick
 var gTimerInterval
-var gBoard 
+var gBoard
 
 function onInit() {
-    isFirstClick = true;
-    gLivesCount = 3 
-    var elLives = document.querySelector('.lives-left span')
-    elLives.innerText = gLivesCount
+    gGame = {
+        isOn: false,
+        shownCount: 0,
+        markedCount: 0,
+        secsPass: 0,
+    }
+    gIsVictory = false
+    gIsFirstClick = true;
+    gSize = 4
+    gNumOfMines = 2
+    gLivesCount = 3
+    renderText('.reset-btn', '😁')
+    renderText('h2 span', gLivesCount)
     clearInterval(gTimerInterval)
     gBoard = buildBoard(gSize)
-    addMines(gBoard, gNumOfMines)
+
     renderBoard(gSize)
+
     var elBoard = document.querySelector('.board')
     elBoard.classList.remove('disabled')
 }
@@ -34,7 +46,8 @@ function buildBoard(size) {
                 minesAroundCount: 0,
                 isShown: false,
                 isMine: false,
-                isMarked: false
+                isMarked: false,
+
             }
         }
     }
@@ -53,12 +66,13 @@ function renderBoard(size) {
             var className = cell.isMine ? 'mine' : 'empty';
 
             strHTML += `
-            <td class="${className}"  data-i="${i}" data-j="${j}" onclick="onCellClicked(this, ${i}, ${j})" oncontextmenu="event.preventDefault(); cellMarked(this);return false;">
+            <td class="${className}"  data-i="${i}" data-j="${j}" onclick="onCellClicked(this, ${i}, ${j})" oncontextmenu="event.preventDefault(); cellMarked(this,  ${i}, ${j});return false;">
             </td>`
         }
         strHTML += '</tr>'
     }
     strHTML += '</table>'
+
 
     var elBoard = document.querySelector('.board')
     elBoard.innerHTML = strHTML
@@ -66,18 +80,16 @@ function renderBoard(size) {
 }
 
 function setGameLevel(size, numOfMines) {
-
     clearInterval(gTimerInterval)
     gLivesCount = 3
-    var elLives = document.querySelector('.lives-left span')
-    elLives.innerText = gLivesCount
-    isFirstClick = true
+    renderText('h2 span', gLivesCount)
+    gIsFirstClick = true
     var elBoard = document.querySelector('.board')
     elBoard.classList.remove('disabled')
     gSize = size;
     gNumOfMines = numOfMines
     gBoard = buildBoard(size);
-    addMines(gBoard, gNumOfMines)
+
     renderBoard(size);
 }
 
@@ -89,34 +101,37 @@ function addMines(board, numOfMines) {
 
         if (!board[randRow][randCol].isMine) {
             board[randRow][randCol].isMine = true;
-           
-            // console.log(board[randRow][randCol].isMine);
             minesCount++;
         }
     }
 }
 
 function onCellClicked(elCell, row, col) {
-    
     console.log(elCell, row, col);
+    handleFirstClick(row, col)
+
+    console.log(gBoard);
+
     var cell = gBoard[row][col]
-    handleFirstClick()
+
+
 
     if (cell.isMarked) return
     cell.isShown = true
     elCell.classList.add('shown')
 
-    if (cell.isMine)  gameOver()
-     else {
+    if (cell.isMine) gameOver()
+    else {
         var minesCount = countMinesArround(row, col);
+        elCell.innerText = minesCount;
         if (minesCount === 0) {
             revealNeighbors(row, col);
-            elCell.innerHTML = '0'
         } else {
-            elCell.innerHTML = minesCount;
+            cell.minesAroundCount = minesCount
         }
-        checkVictory()
     }
+    checkVictory()
+
 }
 
 function checkVictory() {
@@ -128,7 +143,8 @@ function checkVictory() {
             }
         }
     }
-    victory()
+    gIsVictory = true
+    onVictory()
 }
 
 function revealMines() {
@@ -138,7 +154,7 @@ function revealMines() {
             if (cell.isMine) {
                 var elCell = document.querySelectorAll('td.mine');
                 elCell.forEach(function (cell) {
-                    cell.innerText = MINE
+                    cell.innerText = gIsVictory ? FLAG : MINE
                     cell.isShown = true;
                 });
             }
@@ -146,20 +162,39 @@ function revealMines() {
     }
 }
 
-function cellMarked(elCell) {
+
+
+function cellMarked(elCell, row, col) {
+    var cell = gBoard[row][col]
+    if (cell.isShown && !cell.isMine) return
     elCell.classList.toggle('marked');
+    console.log('elCell', elCell);
     var elCellClass = elCell.classList
-    elCell.textContent = elCellClass.contains('marked') ? FLAG : ''
-    return false;
+    console.log('elCellClass', elCellClass);
+    if (elCellClass.contains('marked')) {
+        elCell.textContent = FLAG
+        cell.isMarked = true
+        gGame.markedCount++
+        console.log('gGame.markedCount', gGame.markedCount);
+    } else {
+        elCell.textContent = ''
+        cell.isMarked = false
+        gGame.markedCount--
+        console.log('gGame.markedCount', gGame.markedCount);
+    }
+
 }
 
-function handleFirstClick() {
-    if (isFirstClick) {
-        
+function handleFirstClick(row, col) {
+    if (gIsFirstClick) {
+
+        addMines(gBoard, gNumOfMines)
+        renderBoard(gSize);
+        revealCell(row, col)
         startTimer();
-        isFirstClick = false;
-        
-        ;
+        gIsFirstClick = false;
+
+
     }
 }
 
@@ -180,7 +215,8 @@ function revealCell(row, col) {
     var elCell = document.querySelector(`[data-i="${row}"][data-j="${col}"]`);
     elCell.classList.add('shown');
     var minesCount = countMinesArround(row, col);
-    elCell.innerHTML = (minesCount > 0) ? minesCount : 0;
+
+    elCell.innerText = minesCount
     if (minesCount === 0) revealNeighbors(row, col);
 }
 
@@ -196,32 +232,43 @@ function countMinesArround(row, col) {
     return minesCount;
 }
 
-function victory() {
-    var elvictory = document.querySelector('h2 span')
-    elvictory.innerText = 'Victory!!!'
+function onVictory() {
     onEndOfGame()
-    
-    
 }
-
+// when the user lose
 function gameOver() {
     gLivesCount--
-    var elLives = document.querySelector('h2 span')
-    elLives.innerText = gLivesCount
-    if(gLivesCount<=0){
-        elLives.innerText = 'You Lost!'
-    onEndOfGame()
-    
-    
-}
+    renderText('h2 span', gLivesCount)
+    if (gLivesCount <= 0) {
+        renderText('.reset-btn', '☹️')
+        onEndOfGame()
+    }
 }
 
+// msg, mines, timer
 function onEndOfGame() {
+    var msg = gIsVictory ? 'You Won!!!' : 'You Lost'
+    onOpenModal(msg)
     disableBoard()
     revealMines();
     clearInterval(gTimerInterval)
 }
 
+function onOpenModal(msg) {
+    const elModal = document.querySelector('.modal')
+    const elH3 = elModal.querySelector('h3')
+    elH3.innerText = msg
+    elModal.style.display = 'block'
+    setTimeout(onCloseModal, 3000)
+
+}
+// to close the msg after 3 sec
+function onCloseModal() {
+    const elModal = document.querySelector('.modal')
+    elModal.style.display = 'none'
+}
+
+// to block the table on the end of the game 
 function disableBoard() {
     var elBoard = document.querySelector('.board')
     elBoard.classList.add('disabled')
@@ -229,4 +276,10 @@ function disableBoard() {
 
 function isOutOfRange(row, col) {
     return (row < 0 || row >= gSize || col < 0 || col >= gSize);
-  }
+}
+
+function renderText(elName, value) {
+    const elSelector = document.querySelector(elName)// '.cell-2-7'
+    elSelector.innerText = value
+}
+
