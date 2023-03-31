@@ -62,7 +62,7 @@ h2 {
     text-shadow: 2px 2px 4px #000000;
     color: rgb(174, 34, 10);
     font-family: 'Sacramento', cursive;
-    font-size: 5.625rem;
+    font-size: 3rem;
     animation-duration: 5s;
     animation: rainbow-bounce 1s ease-in-out infinite;
 }
@@ -86,10 +86,19 @@ h5 {
 }
 
 .modal {
-    background-color: lightseagreen;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 200px;
+    height: 200px;
+    padding: 20px;
     display: none;
-    border-radius: 30px;
-    margin: auto;
-    width: 100px;
-    height: 100px;
-}
+    border: 10px solid #888;
+    font-family: 'Sacramento', cursive;
+    font-size: 2rem;
+    background-color: rgb(158, 74, 74);
+    overflow: auto;
+  }
+
+  
