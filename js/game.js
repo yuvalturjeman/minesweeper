@@ -7,9 +7,8 @@ const FLAG = '🚩'
 var gGame
 var gSize
 var gNumOfMines
-var gIsVictory
-var gLivesCount
-var gIsFirstClick
+
+
 var gTimerInterval
 var gBoard
 
@@ -19,14 +18,15 @@ function onInit() {
         shownCount: 0,
         markedCount: 0,
         secsPass: 0,
+        IsVictory: false,
+        isFirstClick: true,
+        livesCount: 3,
     }
-    gIsVictory = false
-    gIsFirstClick = true;
+   
     gSize = 4
     gNumOfMines = 2
-    gLivesCount = 3
     renderText('.reset-btn', '😁')
-    renderText('h2 span', gLivesCount)
+    renderText('h2 span', gGame.livesCount)
     clearInterval(gTimerInterval)
     gBoard = buildBoard(gSize)
 
@@ -81,9 +81,10 @@ function renderBoard(size) {
 
 function setGameLevel(size, numOfMines) {
     clearInterval(gTimerInterval)
-    gLivesCount = 3
-    renderText('h2 span', gLivesCount)
-    gIsFirstClick = true
+    gGame.livesCount = 3
+    renderText('.reset-btn', '😁')
+    renderText('h2 span', gGame.livesCount)
+    gGame.isFirstClick = true
     var elBoard = document.querySelector('.board')
     elBoard.classList.remove('disabled')
     gSize = size;
@@ -143,7 +144,7 @@ function checkVictory() {
             }
         }
     }
-    gIsVictory = true
+    gGame.isVictory = true
     onVictory()
 }
 
@@ -154,7 +155,7 @@ function revealMines() {
             if (cell.isMine) {
                 var elCell = document.querySelectorAll('td.mine');
                 elCell.forEach(function (cell) {
-                    cell.innerText = gIsVictory ? FLAG : MINE
+                    cell.innerText = gGame.isVictory ? FLAG : MINE
                     cell.isShown = true;
                 });
             }
@@ -186,13 +187,13 @@ function cellMarked(elCell, row, col) {
 }
 
 function handleFirstClick(row, col) {
-    if (gIsFirstClick) {
+    if (gGame.isFirstClick) {
 
         addMines(gBoard, gNumOfMines)
         renderBoard(gSize);
         revealCell(row, col)
         startTimer();
-        gIsFirstClick = false;
+        gGame.isFirstClick = false;
 
 
     }
@@ -237,9 +238,9 @@ function onVictory() {
 }
 // when the user lose
 function gameOver() {
-    gLivesCount--
-    renderText('h2 span', gLivesCount)
-    if (gLivesCount <= 0) {
+    gGame.livesCount--
+    renderText('h2 span', gGame.livesCount)
+    if (gGame.livesCount <= 0) {
         renderText('.reset-btn', '☹️')
         onEndOfGame()
     }
@@ -247,7 +248,7 @@ function gameOver() {
 
 // msg, mines, timer
 function onEndOfGame() {
-    var msg = gIsVictory ? 'You Won!!!' : 'You Lost'
+    var msg = gGame.isVictory ? 'You Won!!!' : 'You Lost'
     onOpenModal(msg)
     disableBoard()
     revealMines();
