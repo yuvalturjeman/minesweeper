@@ -8,9 +8,10 @@ var gGame
 var gSize
 var gNumOfMines
 
-
+var gElapsedTime
 var gTimerInterval
 var gBoard
+var gBestScore
 
 function onInit() {
     gGame = {
@@ -21,8 +22,9 @@ function onInit() {
         IsVictory: false,
         isFirstClick: true,
         livesCount: 3,
+        hintsCount: 3,
     }
-   
+
     gSize = 4
     gNumOfMines = 2
     renderText('.reset-btn', '😁')
@@ -34,6 +36,11 @@ function onInit() {
 
     var elBoard = document.querySelector('.board')
     elBoard.classList.remove('disabled')
+
+    gBestScore = localStorage.getItem('gBestScore');
+    renderText('.best-score span', gBestScore)
+
+
 }
 
 function buildBoard(size) {
@@ -51,7 +58,7 @@ function buildBoard(size) {
             }
         }
     }
-//     console.log(board);
+    console.log(board);
     return board
 }
 
@@ -66,7 +73,8 @@ function renderBoard(size) {
             var className = cell.isMine ? 'mine' : 'empty';
 
             strHTML += `
-            <td class="${className}"  data-i="${i}" data-j="${j}" onclick="onCellClicked(this, ${i}, ${j})" oncontextmenu="event.preventDefault(); cellMarked(this,  ${i}, ${j});return false;">
+            <td class="${className}"  data-i="${i}" data-j="${j}" onclick="onCellClicked(this, ${i}, ${j})" 
+            oncontextmenu="event.preventDefault(); cellMarked(this,  ${i}, ${j});return false;">
             </td>`
         }
         strHTML += '</tr>'
@@ -94,6 +102,9 @@ function setGameLevel(size, numOfMines) {
     renderBoard(size);
 }
 
+
+
+
 function addMines(board, numOfMines) {
     var minesCount = 0;
     while (minesCount < numOfMines) {
@@ -108,10 +119,12 @@ function addMines(board, numOfMines) {
 }
 
 function onCellClicked(elCell, row, col) {
-//     console.log(elCell, row, col);
+
+
+
     handleFirstClick(row, col)
 
-//     console.log(gBoard);
+    console.log(gBoard);
 
     var cell = gBoard[row][col]
 
@@ -119,14 +132,17 @@ function onCellClicked(elCell, row, col) {
 
     if (cell.isMarked) return
     cell.isShown = true
+
     elCell.classList.add('shown')
+
 
     if (cell.isMine) gameOver()
     else {
-        var minesCount = countMinesArround(row, col);
+        var minesCount = countMinesNegsArround(row, col);
         elCell.innerText = minesCount;
         if (minesCount === 0) {
             revealNeighbors(row, col);
+
         } else {
             cell.minesAroundCount = minesCount
         }
@@ -144,7 +160,7 @@ function checkVictory() {
             }
         }
     }
-    
+
     onVictory()
 }
 
@@ -157,6 +173,8 @@ function revealMines() {
                 elCell.forEach(function (cell) {
                     cell.innerText = gGame.isVictory ? FLAG : MINE
                     cell.isShown = true;
+
+
                 });
             }
         }
@@ -205,6 +223,7 @@ function revealNeighbors(row, col) {
             if (i === row && j === col) continue;
             if (isOutOfRange(i, j)) continue;
             revealCell(i, j);
+
         }
     }
 }
@@ -212,16 +231,20 @@ function revealNeighbors(row, col) {
 function revealCell(row, col) {
     var cell = gBoard[row][col];
     if (cell.isMine || cell.isShown) return;
+
     cell.isShown = true;
     var elCell = document.querySelector(`[data-i="${row}"][data-j="${col}"]`);
     elCell.classList.add('shown');
-    var minesCount = countMinesArround(row, col);
-
+    var minesCount = countMinesNegsArround(row, col);
     elCell.innerText = minesCount
-    if (minesCount === 0) revealNeighbors(row, col);
+    if (minesCount === 0) {
+        revealNeighbors(row, col);
+    }
+
 }
 
-function countMinesArround(row, col) {
+//check and count mines arround a clicked cell
+function countMinesNegsArround(row, col) {
     var minesCount = 0;
     for (var i = row - 1; i <= row + 1; i++) {
         for (var j = col - 1; j <= col + 1; j++) {
@@ -233,13 +256,25 @@ function countMinesArround(row, col) {
     return minesCount;
 }
 
+// when user win
 function onVictory() {
     gGame.isVictory = true
     renderText('.reset-btn', '😎')
     onEndOfGame()
+    if (!gBestScore || (gElapsedTime / 1000).toFixed(3) < gBestScore) {
+        gBestScore = (gElapsedTime / 1000).toFixed(3)
+        localStorage.setItem('gBestScore', gBestScore);
+        
+        // console.log(gBestScore);
+    }
+
 }
+
+
+
 // when the user lose
 function gameOver() {
+
     gGame.livesCount--
     renderText('h2 span', gGame.livesCount)
     if (gGame.livesCount <= 0) {
@@ -248,7 +283,7 @@ function gameOver() {
     }
 }
 
-// msg, mines, timer
+// basic operations if victory or lose msg, mines, timer
 function onEndOfGame() {
     var msg = gGame.isVictory ? 'You Won!!!' : 'You Lost'
     onOpenModal(msg)
@@ -257,6 +292,7 @@ function onEndOfGame() {
     clearInterval(gTimerInterval)
 }
 
+//when victory or gameOver show message
 function onOpenModal(msg) {
     const elModal = document.querySelector('.modal')
     const elH3 = elModal.querySelector('h3')
@@ -279,10 +315,5 @@ function disableBoard() {
 
 function isOutOfRange(row, col) {
     return (row < 0 || row >= gSize || col < 0 || col >= gSize);
-}
-
-function renderText(elName, value) {
-    const elSelector = document.querySelector(elName)// '.cell-2-7'
-    elSelector.innerText = value
 }
 
